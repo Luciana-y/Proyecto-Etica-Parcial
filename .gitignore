@@ -1,0 +1,48 @@
+# ==========================================
+# Entornos Virtuales (Dependencias locales)
+# ==========================================
+.venv/
+venv/
+env/
+ENV/
+
+# ==========================================
+# Archivos de caché de Python (Compilados)
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ==========================================
+# Configuración y Variables de Entorno (¡CRÍTICO!)
+# ==========================================
+.env
+*.env
+.env.[a-zA-Z]*
+!.env.example
+
+# ==========================================
+# Bases de datos locales (si usas SQLite de prueba)
+# ==========================================
+*.db
+*.sqlite3
+
+# ==========================================
+# Configuraciones de Editores de Código
+# ==========================================
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# ==========================================
+# Archivos del Sistema Operativo
+# ==========================================
+.DS_Store
+Thumbs.db
