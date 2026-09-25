@@ -1,0 +1,51 @@
+doctor_id,doctor_name,specialty,hospital_wing
+101,Dr. Médico 1,Cardiology,Pabellón B
+102,Dr. Médico 2,Endocrinology,Pabellón A
+103,Dr. Médico 3,Emergency,Pabellón B
+104,Dr. Médico 4,Emergency,Pabellón B
+105,Dr. Médico 5,Endocrinology,Pabellón A
+106,Dr. Médico 6,Cardiology,Pabellón C
+107,Dr. Médico 7,General Surgery,Pabellón A
+108,Dr. Médico 8,Cardiology,Pabellón B
+109,Dr. Médico 9,Internal Medicine,Pabellón C
+110,Dr. Médico 10,General Surgery,Pabellón A
+111,Dr. Médico 11,Endocrinology,Pabellón C
+112,Dr. Médico 12,Internal Medicine,Pabellón B
+113,Dr. Médico 13,Endocrinology,Pabellón C
+114,Dr. Médico 14,Emergency,Pabellón B
+115,Dr. Médico 15,Internal Medicine,Pabellón C
+116,Dr. Médico 16,Cardiology,Pabellón B
+117,Dr. Médico 17,Internal Medicine,Pabellón C
+118,Dr. Médico 18,Emergency,Pabellón C
+119,Dr. Médico 19,Endocrinology,Pabellón B
+120,Dr. Médico 20,Internal Medicine,Pabellón A
+121,Dr. Médico 21,Cardiology,Pabellón C
+122,Dr. Médico 22,General Surgery,Pabellón B
+123,Dr. Médico 23,Emergency,Pabellón A
+124,Dr. Médico 24,Cardiology,Pabellón A
+125,Dr. Médico 25,Internal Medicine,Pabellón A
+126,Dr. Médico 26,Cardiology,Pabellón C
+127,Dr. Médico 27,Endocrinology,Pabellón A
+128,Dr. Médico 28,Internal Medicine,Pabellón C
+129,Dr. Médico 29,Emergency,Pabellón A
+130,Dr. Médico 30,Endocrinology,Pabellón A
+131,Dr. Médico 31,General Surgery,Pabellón B
+132,Dr. Médico 32,Emergency,Pabellón A
+133,Dr. Médico 33,Endocrinology,Pabellón C
+134,Dr. Médico 34,Cardiology,Pabellón A
+135,Dr. Médico 35,Endocrinology,Pabellón A
+136,Dr. Médico 36,Emergency,Pabellón B
+137,Dr. Médico 37,Endocrinology,Pabellón C
+138,Dr. Médico 38,Internal Medicine,Pabellón A
+139,Dr. Médico 39,Cardiology,Pabellón C
+140,Dr. Médico 40,Cardiology,Pabellón B
+141,Dr. Médico 41,Cardiology,Pabellón B
+142,Dr. Médico 42,Cardiology,Pabellón B
+143,Dr. Médico 43,Cardiology,Pabellón A
+144,Dr. Médico 44,Emergency,Pabellón B
+145,Dr. Médico 45,General Surgery,Pabellón C
+146,Dr. Médico 46,Cardiology,Pabellón B
+147,Dr. Médico 47,Internal Medicine,Pabellón A
+148,Dr. Médico 48,Internal Medicine,Pabellón A
+149,Dr. Médico 49,Cardiology,Pabellón C
+150,Dr. Médico 50,General Surgery,Pabellón A
