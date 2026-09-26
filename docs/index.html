@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diseño de un Sistema de Seguridad para Datos Hospitalarios de Pacientes Diabéticos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#132228;
+    --ink-soft:#3c4f56;
+    --paper:#f4f7f7;
+    --panel:#ffffff;
+    --line:#d8e0e0;
+    --teal:#175c66;
+    --teal-deep:#0e3d45;
+    --amber:#b4791f;
+    --sidebar-bg:#0d2027;
+    --sidebar-ink:#c9d8da;
+    --sidebar-ink-dim:#7f979b;
+    --sidebar-active:#e8f3f2;
+    --code-bg:#0e2429;
+    --code-ink:#dbe9e8;
+    --radius:3px;
+    --sidebar-w:300px;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", -apple-system, sans-serif;
+    font-size:16.5px;
+    line-height:1.65;
+  }
+
+  h1,h2,h3,h4{
+    font-family:"Source Serif 4", Georgia, serif;
+    color:var(--ink);
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+
+  a{ color:var(--teal); }
+
+  code, .mono{ font-family:"IBM Plex Mono", monospace; }
+
+  /* ---------- layout shell ---------- */
+
+  .shell{
+    display:grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    min-height:100vh;
+  }
+
+  /* ---------- sidebar ---------- */
+
+  .sidebar{
+    background:var(--sidebar-bg);
+    color:var(--sidebar-ink);
+    padding:34px 26px 40px;
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+  }
+
+  .sidebar::-webkit-scrollbar{ width:8px; }
+  .sidebar::-webkit-scrollbar-thumb{ background:#1e3d45; border-radius:4px; }
+
+  .brand{
+    border-bottom:1px solid #1d3a41;
+    padding-bottom:20px;
+    margin-bottom:22px;
+  }
+
+  .brand .kicker{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:11.5px;
+    color:var(--sidebar-ink-dim);
+    letter-spacing:0.04em;
+  }
+
+  .brand h1{
+    font-size:19px;
+    color:#f2f7f6;
+    margin:10px 0 12px;
+    line-height:1.35;
+  }
+
+  .brand .meta{
+    font-size:13px;
+    color:var(--sidebar-ink-dim);
+    line-height:1.6;
+  }
+
+  .brand .meta strong{ color:var(--sidebar-ink); font-weight:500; }
+
+  nav.toc{ font-size:14px; }
+
+  nav.toc a{
+    display:block;
+    color:var(--sidebar-ink);
+    text-decoration:none;
+    padding:7px 0 7px 14px;
+    border-left:2px solid transparent;
+    transition: color .15s ease, border-color .15s ease, background .15s ease;
+  }
+
+  nav.toc a:hover{ color:#fff; }
+
+  nav.toc .lvl1 > a{
+    font-weight:600;
+    color:#eef5f4;
+    padding-top:14px;
+  }
+
+  nav.toc .lvl2 a{
+    font-size:13.2px;
+    padding-left:28px;
+    color:var(--sidebar-ink-dim);
+  }
+
+  nav.toc a.active{
+    color:#fff;
+    border-left-color:var(--amber);
+    background:rgba(180,121,31,0.08);
+  }
+
+  nav.toc .lvl2 a.active{ color:#f2ecdf; }
+
+  /* ---------- main content ---------- */
+
+  main{
+    padding: 56px 64px 120px;
+    max-width:880px;
+  }
+
+  .titleblock{
+    margin-bottom:52px;
+    padding-bottom:36px;
+    border-bottom:1px solid var(--line);
+  }
+
+  .titleblock .doctype{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12.5px;
+    color:var(--amber);
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+  }
+
+  .titleblock h1{
+    font-size:34px;
+    line-height:1.25;
+    margin:14px 0 20px;
+    max-width:640px;
+  }
+
+  .titleblock .authors{
+    font-size:15px;
+    color:var(--ink-soft);
+  }
+
+  .titleblock .authors ul{
+    list-style:none;
+    padding:0;
+    margin:8px 0 18px;
+  }
+
+  .titleblock .authors li{ margin-bottom:2px; }
+
+  .titleblock .course-meta{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    display:flex;
+    gap:22px;
+    flex-wrap:wrap;
+    margin-top:6px;
+  }
+
+  section{ margin-bottom:56px; scroll-margin-top:28px; }
+  section h2 > .num, section h3 > .num{
+    color:var(--teal);
+    font-variant-numeric: tabular-nums;
+    margin-right:10px;
+  }
+
+  h2{
+    font-size:25px;
+    margin:0 0 22px;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--line);
+  }
+
+  h3{
+    font-size:19px;
+    margin:36px 0 14px;
+    color:var(--teal-deep);
+  }
+
+  p{ margin:0 0 16px; max-width:74ch; }
+
+  ul, ol{ margin:0 0 18px; padding-left:22px; }
+  li{ margin-bottom:6px; max-width:70ch; }
+
+  strong{ font-weight:600; }
+
+  /* ---------- info / classification boxes ---------- */
+
+  .level-box{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+    margin:22px 0 8px;
+  }
+
+  .level{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-left:4px solid var(--teal);
+    border-radius:var(--radius);
+    padding:14px 18px;
+  }
+
+  .level.n1{ border-left-color:#a8341f; }
+  .level.n2{ border-left-color:var(--amber); }
+  .level.n3{ border-left-color:#2c7a4b; }
+
+  .level .tag{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--ink-soft);
+  }
+
+  .level p{ margin:6px 0 0; font-size:14.8px; }
+
+  /* ---------- tables ---------- */
+
+  .table-wrap{
+    overflow-x:auto;
+    margin:8px 0 10px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+  }
+
+  table{
+    border-collapse:collapse;
+    width:100%;
+    font-size:14.2px;
+    background:var(--panel);
+  }
+
+  caption{
+    caption-side:top;
+    text-align:left;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    padding:10px 14px 0;
+  }
+
+  th, td{
+    border-bottom:1px solid var(--line);
+    padding:10px 14px;
+    text-align:left;
+    vertical-align:top;
+  }
+
+  thead th{
+    background:#eef3f3;
+    color:var(--teal-deep);
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+  }
+
+  tbody tr:last-child td{ border-bottom:none; }
+
+  code.rs, code.rf{
+    background:#eef3f3;
+    color:var(--teal-deep);
+    padding:1px 6px;
+    border-radius:3px;
+    font-size:13px;
+  }
+
+  /* ---------- code listing ---------- */
+
+  .listing{
+    margin:18px 0 10px;
+    border-radius:var(--radius);
+    overflow:hidden;
+    border:1px solid #0a1c20;
+  }
+
+  .listing .cap{
+    background:#0a1c20;
+    color:var(--sidebar-ink-dim);
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12px;
+    padding:8px 16px;
+  }
+
+  pre{
+    margin:0;
+    background:var(--code-bg);
+    color:var(--code-ink);
+    padding:18px 20px;
+    overflow-x:auto;
+    font-size:13.6px;
+    line-height:1.7;
+  }
+
+  /* ---------- formula blocks ---------- */
+
+  .formula{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-left:4px solid var(--teal-deep);
+    border-radius:var(--radius);
+    padding:16px 20px;
+    margin:14px 0 20px;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:14.5px;
+    overflow-x:auto;
+  }
+
+  /* ---------- figure placeholders ---------- */
+
+  figure.fig-placeholder{
+    margin:26px 0 10px;
+    border:1.5px dashed #9fb3b5;
+    border-radius:6px;
+    background:#eaf1f1;
+    padding:0;
+  }
+
+  figure.fig-placeholder .slot{
+    min-height:220px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:8px;
+    color:#5c7377;
+    padding:28px;
+    text-align:center;
+  }
+
+  figure.fig-placeholder .slot .icon{
+    width:34px;
+    height:34px;
+    border:1.5px solid #7e999c;
+    border-radius:6px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:15px;
+  }
+
+  figure.fig-placeholder .slot .hint{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12px;
+    color:#7e999c;
+  }
+
+  figure.fig-placeholder figcaption{
+    border-top:1.5px dashed #9fb3b5;
+    padding:12px 20px;
+    font-size:13.6px;
+    color:var(--ink-soft);
+    background:var(--panel);
+  }
+
+  figure.fig-placeholder figcaption b{ color:var(--ink); }
+
+  /* ---------- incident cycle list ---------- */
+
+  .cycle-list{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin:18px 0 8px;
+  }
+
+  .cycle-list .step{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    font-size:13.6px;
+  }
+
+  .cycle-list .step .n{
+    font-family:"IBM Plex Mono", monospace;
+    color:var(--amber);
+    font-size:12px;
+  }
+
+  /* ---------- misc ---------- */
+
+  .note{
+    background:#fbf3e6;
+    border:1px solid #e8d3ab;
+    border-radius:var(--radius);
+    padding:14px 18px;
+    font-size:14.4px;
+    color:#6b4f1b;
+    margin:16px 0;
+  }
+
+  footer.doc-footer{
+    border-top:1px solid var(--line);
+    margin-top:60px;
+    padding-top:20px;
+    font-size:12.8px;
+    color:var(--ink-soft);
+  }
+
+  /* ---------- mobile ---------- */
+
+  .menu-toggle{ display:none; }
+
+  @media (max-width: 920px){
+    .shell{ grid-template-columns:1fr; }
+    .sidebar{
+      position:fixed;
+      left:0; top:0; bottom:0;
+      width:82vw;
+      max-width:320px;
+      z-index:40;
+      transform:translateX(-100%);
+      transition:transform .22s ease;
+      box-shadow:6px 0 24px rgba(0,0,0,0.25);
+    }
+    .sidebar.open{ transform:translateX(0); }
+    main{ padding:64px 22px 100px; }
+    .menu-toggle{
+      display:flex;
+      position:fixed;
+      top:16px; left:16px;
+      z-index:50;
+      align-items:center;
+      gap:8px;
+      background:var(--sidebar-bg);
+      color:#fff;
+      border:none;
+      padding:10px 14px;
+      border-radius:20px;
+      font-family:"IBM Plex Mono", monospace;
+      font-size:12.5px;
+      cursor:pointer;
+    }
+    .cycle-list{ grid-template-columns:1fr; }
+    .titleblock h1{ font-size:26px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰ Índice</button>
+
+<div class="shell">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="kicker">DS3031 · Proyecto Parcial</div>
+      <h1>Sistema de Seguridad para Datos Hospitalarios de Pacientes Diabéticos</h1>
+      <div class="meta">
+        <strong>Valentina Alvarez Beraun</strong> · 202310488<br>
+        <strong>Luciana Yangali Cáceres</strong> · 202310298<br>
+        Docente: J. Pasos · 26/09/2026
+      </div>
+    </div>
+
+    <nav class="toc" id="toc">
+      <div class="lvl1"><a href="#s1">1. Introducción</a></div>
+      <div class="lvl2"><a href="#s1-1">1.1 Contexto clínico y justificación</a></div>
+      <div class="lvl2"><a href="#s1-2">1.2 Caso de uso de negocio</a></div>
+      <div class="lvl2"><a href="#s1-3">1.3 Dataset de enriquecimiento</a></div>
+      <div class="lvl2"><a href="#s1-4">1.4 Objetivos y KPIs</a></div>
+
+      <div class="lvl1"><a href="#s2">2. Trasfondo teórico y marco normativo</a></div>
+      <div class="lvl2"><a href="#s2-1">2.1 Marco legal y normativo</a></div>
+      <div class="lvl2"><a href="#s2-2">2.2 Clasificación de datos</a></div>
+
+      <div class="lvl1"><a href="#s3">3. Requerimientos y control de acceso</a></div>
+      <div class="lvl2"><a href="#s3-1">3.1 Requerimientos funcionales</a></div>
+      <div class="lvl2"><a href="#s3-2">3.2 Requerimientos de seguridad</a></div>
+      <div class="lvl2"><a href="#s3-3">3.3 Modelo RBAC / ABAC</a></div>
+
+      <div class="lvl1"><a href="#s4">4. Arquitectura e infraestructura</a></div>
+
+      <div class="lvl1"><a href="#s5">5. Mecanismos de ciberseguridad</a></div>
+      <div class="lvl2"><a href="#s5-1">5.1 Cifrado de PII — AES-256-GCM</a></div>
+      <div class="lvl2"><a href="#s5-2">5.2 Credenciales — Argon2id</a></div>
+      <div class="lvl2"><a href="#s5-3">5.3 Autenticación — JWT + RBAC/ABAC</a></div>
+      <div class="lvl2"><a href="#s5-4">5.4 Bitácora — SHA-256</a></div>
+      <div class="lvl2"><a href="#s5-5">5.5 Tránsito — TLS con CA propia</a></div>
+
+      <div class="lvl1"><a href="#s6">6. Modelado de amenazas (STRIDE)</a></div>
+
+      <div class="lvl1"><a href="#s7">7. Contingencia e incidentes</a></div>
+      <div class="lvl2"><a href="#s7-1">7.1 Respaldos y recuperación</a></div>
+      <div class="lvl2"><a href="#s7-2">7.2 Plan de respuesta a incidentes</a></div>
+      <div class="lvl2"><a href="#s7-3">7.3 Protección de datos futura</a></div>
+
+      <div class="lvl1"><a href="#s8">8. Retrospectiva y conclusiones</a></div>
+
+      <div class="lvl1"><a href="#s9">9. Anexos y evidencias técnicas</a></div>
+      <div class="lvl2"><a href="#s9-1">9.1 Pruebas de seguridad</a></div>
+      <div class="lvl2"><a href="#s9-2">9.2 Endpoints de la API</a></div>
+      <div class="lvl2"><a href="#s9-3">9.3 Repositorio y ejecución</a></div>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="titleblock">
+      <div class="doctype">Proyecto Parcial · Ética y Seguridad de Datos</div>
+      <h1>Diseño de un Sistema de Seguridad para Datos Hospitalarios de Pacientes Diabéticos</h1>
+      <div class="authors">
+        Autoras
+        <ul>
+          <li>Valentina Alvarez Beraun — 202310488</li>
+          <li>Luciana Yangali Cáceres — 202310298</li>
+        </ul>
+      </div>
+      <div class="course-meta">
+        <span>Curso: Ética y Seguridad de Datos (DS3031)</span>
+        <span>Docente: J. Pasos</span>
+        <span>26 de septiembre de 2026</span>
+        <span>UTEC — Universidad de Ingeniería y Tecnología</span>
+      </div>
+    </div>
+
+    <!-- ======================= 1. INTRODUCCIÓN ======================= -->
+    <section id="s1">
+      <h2><span class="num">1</span>Introducción</h2>
+
+      <h3 id="s1-1"><span class="num">1.1</span>Contexto Clínico y Justificación del Dataset Base</h3>
+      <p>La diabetes representa una de las condiciones crónicas con mayor impacto en los sistemas de salud a nivel global, caracterizada por altas tasas de internamiento repetitivo y complicaciones multisistémicas. El reingreso hospitalario no planificado constituye un indicador crítico de ineficiencia en el alta médica, falta de adherencia al tratamiento post-alta o seguimiento ambulatorio deficiente.</p>
+      <p>Para abordar esta problemática, se seleccionó el dataset de dominio público <strong>Diabetes 130-US Hospitals (1999–2008)</strong>. Este conjunto de datos abarca 10 años de atención clínica en 130 hospitales de Estados Unidos e incluye más de 100,000 registros de pacientes internados con diagnóstico de diabetes. Las variables contempladas abarcan información demográfica, historial de admisiones, resultados de laboratorio, número de medicamentos administrados y la variable objetivo: si el paciente reingresó al hospital en un periodo menor a 30 días, mayor a 30 días, o si no registró reingreso.</p>
+
+      <h3 id="s1-2"><span class="num">1.2</span>Caso de Uso de Negocio</h3>
+      <p>El caso de uso de negocio consiste en implementar un <strong>Sistema Integrado de Evaluación de Riesgo de Reingreso y Gobierno de Datos Clínicos</strong>. El sistema procesa los datos clínicos del paciente al momento del alta para estimar la probabilidad de que este reingrese en un lapso inferior a 30 días.</p>
+      <p>Al identificar preventivamente a los pacientes en el estrato de "Alto Riesgo", el personal médico y administrativo activa protocolos de intervención temprana (consultas telefónicas a las 48 horas, visitas domiciliarias o ajuste farmacológico inmediato). Esto no solo mejora los resultados en salud del paciente, sino que disminuye la saturación en las salas de urgencias y optimiza la capacidad operativa del hospital.</p>
+
+      <h3 id="s1-3"><span class="num">1.3</span>Integración de Dataset de Enriquecimiento</h3>
+      <p>Para que la solución aporte valor medible y permita simulaciones realistas a nivel administrativo y directivo, el dataset base se complementa con tres fuentes de datos sintéticas y normalizadas:</p>
+      <ol>
+        <li><strong>Catálogo Maestro ICD-9 de Diagnósticos:</strong> traduce los códigos alfanuméricos del dataset base (<code>diag_1</code>, <code>diag_2</code>, <code>diag_3</code>) a descripciones clínicas legibles.</li>
+        <li><strong>Entidad Maestra de Personal y Unidades Médicas:</strong> agrega atributos como <code>doctor_id</code>, especialidad médica y pabellón de internamiento. Permite simular un entorno multiusuario donde cada médico visualiza únicamente los pacientes asignados a su servicio.</li>
+        <li><strong>Matriz de Costos Hospitalarios:</strong> asigna valores monetarios a las estancias hospitalarias, procedimientos de laboratorio y medicamentos administrados para proyectar el ahorro financiero acumulado al evitar reingresos no planificados.</li>
+      </ol>
+
+      <h3 id="s1-4"><span class="num">1.4</span>Objetivos e Indicadores Clave de Desempeño (KPIs / OKRs de Negocio)</h3>
+      <p>Para evaluar objetivamente la generación de valor del proyecto en el dominio de salud, se establecen los siguientes indicadores clave:</p>
+      <ol>
+        <li><strong>Tasa de Reingreso a 30 Días:</strong> porcentaje de pacientes diabéticos dados de alta que retornan al establecimiento dentro de los primeros 30 días.</li>
+      </ol>
+      <div class="formula">
+        Tasa de Reingreso&nbsp;=&nbsp;( Pacientes reingresados en &lt; 30 días&nbsp;/&nbsp;Total de altas en el período )&nbsp;×&nbsp;100
+      </div>
+      <ol start="2">
+        <li><strong>Costo Promedio Evitado por Prevención:</strong> impacto económico estimado al evitar estancias hospitalarias innecesarias mediante seguimiento preventivo.</li>
+        <li><strong>Ratio de Adherencia al Protocolo Post-Alta:</strong> porcentaje de pacientes de alto riesgo que completan un contacto de seguimiento dentro de las primeras 48 horas posteriores al alta.</li>
+        <li><strong>Días Promedio de Estancia Hospitalaria (ALOS):</strong> duración media del internamiento en función de la complejidad del régimen de medicación administrada.</li>
+      </ol>
+    </section>
+
+    <!-- ======================= 2. TRASFONDO TEÓRICO ======================= -->
+    <section id="s2">
+      <h2><span class="num">2</span>Trasfondo Teórico, Gobierno de Datos y Marco Normativo</h2>
+
+      <h3 id="s2-1"><span class="num">2.1</span>Marco Legal y Normativo</h3>
+      <p>El tratamiento de datos de salud exige el cumplimiento estricto de marcos legales de privacidad y protección de datos personales. En el ámbito peruano, el proyecto se alinea con las disposiciones de la <strong>Ley N.º 29733</strong> (Ley de Protección de Datos Personales) y su Reglamento, garantizando los siguientes principios:</p>
+      <ul>
+        <li><strong>Principio de Finalidad y Proporcionalidad:</strong> los datos se procesan exclusivamente para la evaluación del riesgo clínico y la analítica hospitalaria.</li>
+        <li><strong>Principio de Confidencialidad y Seguridad:</strong> se implementan medidas técnicas y organizativas para impedir el acceso, modificación o divulgación no autorizada de datos sensibles de salud.</li>
+        <li><strong>Alineación con el Estándar Internacional HIPAA:</strong> tratamiento de los datos de identificación bajo protocolos de desidentificación, asegurando que la información de salud protegida (PHI) no se exponga sin controles de cifrado.</li>
+      </ul>
+
+      <h3 id="s2-2"><span class="num">2.2</span>Clasificación de Datos</h3>
+      <p>La información manejada en la plataforma se categoriza en tres niveles de sensibilidad, resumidos en la Figura 1.</p>
+
+      <div class="level-box">
+        <div class="level n1">
+          <div class="tag">Nivel 1 — Datos de Identificación Personal (PII / PHI)</div>
+          <p>Atributos como <code>patient_nbr</code> y <code>encounter_id</code>. Máxima protección: cifrado simétrico AES-256-GCM.</p>
+        </div>
+        <div class="level n2">
+          <div class="tag">Nivel 2 — Datos Clínicos Desidentificados</div>
+          <p>Resultados de laboratorio, número de medicamentos y diagnósticos ICD-9 sin identificadores directos. Usados por el modelo de Machine Learning.</p>
+        </div>
+        <div class="level n3">
+          <div class="tag">Nivel 3 — Datos Agregados e Indicadores de Negocio</div>
+          <p>Reportes estadísticos y KPIs. Accesibles por niveles directivos sin posibilidad de reconstruir identidades.</p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ======================= 3. REQUERIMIENTOS ======================= -->
+    <section id="s3">
+      <h2><span class="num">3</span>Requerimientos del Sistema y Matriz de Control de Acceso</h2>
+
+      <h3 id="s3-1"><span class="num">3.1</span>Requerimientos Funcionales</h3>
+      <div class="table-wrap">
+        <table>
+          <caption>Cuadro 1. Requerimientos funcionales del sistema.</caption>
+          <thead>
+            <tr><th>Código</th><th>Componente</th><th>Requerimiento funcional</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code class="rf">RF-01</code></td><td>Interfaz de Usuario (Frontend)</td><td>Interfaz web ligera y adaptativa según el rol autenticado (Médico, Director Médico, Auditor, Administrador).</td></tr>
+            <tr><td><code class="rf">RF-02</code></td><td>Servicios de Negocio (Backend)</td><td>API REST que procesa peticiones, media la lógica de negocio y se comunica de forma segura con la BD y el modelo predictivo.</td></tr>
+            <tr><td><code class="rf">RF-03</code></td><td>Motor Predictivo ML</td><td>Servicio que evalúa las variables clínicas del paciente al alta para estimar la probabilidad de reingreso a 30 días.</td></tr>
+            <tr><td><code class="rf">RF-04</code></td><td>Módulo Clínico (Médico)</td><td>Consulta del perfil de riesgo individual y traducción automática de códigos ICD-9 a lenguaje clínico comprensible.</td></tr>
+            <tr><td><code class="rf">RF-05</code></td><td>Dashboard de KPIs (Director)</td><td>Panel analítico consolidado (Tasa de Reingreso, Costos Evitados, ALOS) de forma agregada y sin PII.</td></tr>
+            <tr><td><code class="rf">RF-06</code></td><td>Módulo de Seguridad (Auditor)</td><td>Interfaz de inspección de la bitácora de eventos y verificación de integridad de los registros.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="s3-2"><span class="num">3.2</span>Requerimientos de Seguridad</h3>
+      <div class="table-wrap">
+        <table>
+          <caption>Cuadro 2. Requerimientos de seguridad del sistema.</caption>
+          <thead>
+            <tr><th>Código</th><th>Dominio</th><th>Requerimiento técnico</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code class="rs">RS-01</code></td><td>Protección en Tránsito</td><td>HTTPS/TLS 1.3 con certificados autofirmados o emitidos por una CA propia.</td></tr>
+            <tr><td><code class="rs">RS-02</code></td><td>Protección en Reposo</td><td>Cifrado simétrico de columnas con PII mediante AES-256-GCM.</td></tr>
+            <tr><td><code class="rs">RS-03</code></td><td>Gestión de Credenciales</td><td>Almacenamiento de contraseñas con la función memory-hard Argon2id y sal aleatoria única por usuario.</td></tr>
+            <tr><td><code class="rs">RS-04</code></td><td>Control de Acceso (AuthZ)</td><td>Modelo RBAC/ABAC con validación en cada consulta mediante tokens JWT y middleware en el backend (Mediación Completa).</td></tr>
+            <tr><td><code class="rs">RS-05</code></td><td>Trazabilidad e Integridad</td><td>Bitácora de auditoría inmutable (append-only) encadenada mediante hashes SHA-256 para garantizar el no repudio.</td></tr>
+            <tr><td><code class="rs">RS-06</code></td><td>Contingencia y Resiliencia</td><td>Respaldos periódicos cifrados de la base de datos y plan básico de respuesta ante incidentes de fuga de información.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="s3-3"><span class="num">3.3</span>Modelo de Control de Acceso (RBAC / ABAC)</h3>
+      <p>Se implementa una arquitectura de <strong>Control de Acceso Basado en Roles (RBAC)</strong>, complementada con <strong>Atributos (ABAC)</strong>, para el enforcement de permisos en cada endpoint del backend. El componente ABAC restringe, por ejemplo, que un médico solo acceda a los pacientes asignados a su <code>doctor_id</code>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Cuadro 3. Modelo de control de acceso RBAC/ABAC.</caption>
+          <thead>
+            <tr><th>Rol</th><th>Alcance</th><th>Lectura PII</th><th>Logs</th><th>Acción permitida</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Médico Tratante</td><td>Pacientes de su especialidad</td><td>Sí (memoria)</td><td>No</td><td>Consultar riesgo y registrar seguimiento clínico.</td></tr>
+            <tr><td>Director Médico</td><td>Vistas agregadas y estadísticas globales</td><td>No (enmascarado)</td><td>No</td><td>Visualizar el dashboard de KPIs operativos y de costos.</td></tr>
+            <tr><td>Auditor de Seguridad</td><td>Logs de auditoría y registros de acceso</td><td>No</td><td>Sí (lectura)</td><td>Verificar integridad de firmas y analizar alertas.</td></tr>
+            <tr><td>Admin. BD / IT</td><td>Tablas en estado crudo</td><td>Solo cifrado</td><td>No</td><td>Gestión de backups, disponibilidad y mantenimiento.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======================= 4. ARQUITECTURA ======================= -->
+    <section id="s4">
+      <h2><span class="num">4</span>Arquitectura e Infraestructura del Sistema</h2>
+      <p>El sistema sigue una arquitectura cliente–servidor de tres capas (presentación, lógica de negocio y datos), con la seguridad como una preocupación transversal a todas ellas. La Figura 2 muestra los componentes principales y sus relaciones.</p>
+
+      <figure class="fig-placeholder">
+        <img src="2.png" alt="Arquitectura del sistema">
+        <figcaption><b>Figura 2.</b> Arquitectura del sistema: capas de presentación, lógica y datos, con seguridad transversal.</figcaption>
+      </figure>
+
+      <p><strong>Pila tecnológica.</strong> El backend se implementa en Python con el framework FastAPI; la persistencia usa SQLite (cifrando las columnas PII); el motor predictivo emplea scikit-learn; la criptografía se apoya en las bibliotecas <code>cryptography</code> (AES-GCM), <code>argon2-cffi</code> (Argon2id) y <code>PyJWT</code> (tokens). El canal TLS se habilita con OpenSSL y una CA propia. El frontend es una SPA ligera servida por el propio backend.</p>
+    </section>
+
+    <!-- ======================= 5. MECANISMOS DE CIBERSEGURIDAD ======================= -->
+    <section id="s5">
+      <h2><span class="num">5</span>Implementación de Mecanismos de Ciberseguridad</h2>
+
+      <h3 id="s5-1"><span class="num">5.1</span>Cifrado de PII en reposo — AES-256-GCM (RS-02)</h3>
+      <p>Los identificadores personales se cifran con AES-256 en modo GCM, que provee confidencialidad e integridad autenticada de forma simultánea. Cada operación genera un nonce aleatorio de 96 bits; el valor almacenado es la codificación Base64 de <code>nonce ∥ ciphertext</code>, donde el tag de autenticación va embebido. Cualquier alteración del dato cifrado se detecta al descifrar.</p>
+
+      <div class="listing">
+        <div class="cap">Listing 1 — Cifrado autenticado de PII (extracto de <code>crypto_utils.py</code>)</div>
+        <pre><code>def encrypt_pii(plaintext: str) -&gt; str:
+    aesgcm = AESGCM(config.get_aes_key())   # clave de 256 bits
+    nonce = os.urandom(12)                  # 96 bits, único por operación
+    ct = aesgcm.encrypt(nonce, plaintext.encode(), None)
+    return base64.b64encode(nonce + ct).decode()</code></pre>
+      </div>
+
+      <h3 id="s5-2"><span class="num">5.2</span>Gestión de credenciales — Argon2id (RS-03)</h3>
+      <p>Las contraseñas nunca se almacenan en claro: se procesan con Argon2id (ganador del Password Hashing Competition), una función memory-hard resistente a ataques por GPU y ASIC. Se emplean parámetros de <code>time_cost=3</code>, <code>memory_cost=64 MiB</code> y <code>parallelism=4</code>, con una sal aleatoria única embebida en cada hash. Por ello, dos usuarios con la misma contraseña producen hashes distintos.</p>
+
+      <h3 id="s5-3"><span class="num">5.3</span>Autenticación y control de acceso — JWT + RBAC/ABAC (RS-04)</h3>
+      <p>Tras un inicio de sesión válido, el backend emite un JWT firmado (HS256) con expiración de 60 minutos, que transporta el usuario, su rol y su <code>doctor_id</code>. Cada endpoint valida la firma del token y aplica el permiso RBAC correspondiente mediante una dependencia (middleware), materializando el principio de <strong>Mediación Completa</strong>: ninguna operación se ejecuta sin verificación previa.</p>
+
+      <h3 id="s5-4"><span class="num">5.4</span>Bitácora inmutable encadenada por hash — SHA-256 (RS-05)</h3>
+      <p>Cada evento sensible se registra en una tabla append-only. La integridad se garantiza encadenando cada registro con el anterior mediante SHA-256:</p>
+
+      <div class="formula">
+        record_hash&nbsp;=&nbsp;SHA-256( prev_hash ∥ ts ∥ actor ∥ rol ∥ acción ∥ recurso ∥ detalle )
+      </div>
+
+      <p>Como cada hash depende del anterior (partiendo de un bloque génesis de 64 ceros), alterar o eliminar cualquier registro rompe la cadena y es detectado por la función de verificación. Esto proporciona no repudio e integridad verificable de la traza de auditoría (Figura 4).</p>
+
+      <figure class="fig-placeholder">
+        <img src="4.png" alt="Cadena de integridad de la bitácora">
+        <figcaption><b>Figura 4.</b> Cadena de integridad de la bitácora: Génesis (prev = 000…0) → Evento 1 (hash = h1) → Evento 2 (prev = h1, hash = h2) → Evento 3 (prev = h2, hash = h3); cada evento incorpora el hash del anterior.</figcaption>
+      </figure>
+
+      <h3 id="s5-5"><span class="num">5.5</span>Protección en tránsito — TLS con CA propia (RS-01)</h3>
+      <p>La comunicación se cifra con TLS usando un certificado de servidor firmado por una Autoridad Certificadora propia (<strong>HospitalRootCA</strong>), generada con OpenSSL. Esto ejercita el esquema completo de criptografía de llave pública (par de claves, CSR y firma por la CA), aislando el tráfico de escuchas en la red.</p>
+    </section>
+
+    <!-- ======================= 6. MODELADO DE AMENAZAS ======================= -->
+    <section id="s6">
+      <h2><span class="num">6</span>Modelado de Amenazas y Casos de Uso para Simulación</h2>
+      <p>Se aplica el marco STRIDE para identificar amenazas sobre los activos críticos (datos de pacientes, credenciales y bitácora). El Cuadro 4 resume las amenazas y los controles implementados que las mitigan.</p>
+
+      <div class="table-wrap">
+        <table>
+          <caption>Cuadro 4. Modelado de amenazas STRIDE y controles mitigantes.</caption>
+          <thead>
+            <tr><th>Amenaza (STRIDE)</th><th>Escenario</th><th>Control mitigante</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Spoofing</td><td>Suplantación de un médico para acceder a historias clínicas.</td><td>Autenticación con Argon2id + JWT firmado (<code class="rs">RS-03</code>, <code class="rs">RS-04</code>).</td></tr>
+            <tr><td>Tampering</td><td>Alteración de registros de auditoría para ocultar un acceso indebido.</td><td>Bitácora encadenada por hash SHA-256 (<code class="rs">RS-05</code>).</td></tr>
+            <tr><td>Repudiation</td><td>Un usuario niega haber consultado un paciente.</td><td>Trazabilidad con no repudio en la bitácora (<code class="rs">RS-05</code>).</td></tr>
+            <tr><td>Information Disclosure</td><td>Robo de la base de datos o escucha de red.</td><td>AES-256-GCM en reposo (<code class="rs">RS-02</code>) + TLS en tránsito (<code class="rs">RS-01</code>).</td></tr>
+            <tr><td>Denial of Service</td><td>Saturación del servicio de predicción.</td><td>Respaldos y plan de resiliencia (<code class="rs">RS-06</code>); rate limiting futuro.</td></tr>
+            <tr><td>Elevation of Privilege</td><td>Un director intenta descifrar PII o ver historias.</td><td>RBAC/ABAC con mediación completa por endpoint (<code class="rs">RS-04</code>).</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>Entidades afligidas ante una brecha.</strong> Una fuga de información afectaría principalmente a: (i) los <strong>pacientes</strong>, cuya PHI quedaría expuesta; (ii) el <strong>hospital</strong>, expuesto a sanciones legales bajo la Ley N.º 29733 y a daño reputacional; y (iii) el <strong>personal médico</strong>, cuyas acciones podrían ser repudiadas sin una traza íntegra.</p>
+
+      <p><strong>Casos de uso para simulación.</strong> Se contemplan como pruebas:</p>
+      <ul>
+        <li>(a) intento de acceso de un rol no autorizado a un endpoint (esperado: <code>403 Forbidden</code>);</li>
+        <li>(b) acceso de un médico a un paciente de otro servicio (bloqueo por ABAC);</li>
+        <li>(c) manipulación de un registro de la bitácora (detección por <code>verify_chain</code>); y</li>
+        <li>(d) descifrado de un ciphertext alterado (fallo del tag GCM).</li>
+      </ul>
+    </section>
+
+    <!-- ======================= 7. CONTINGENCIA ======================= -->
+    <section id="s7">
+      <h2><span class="num">7</span>Plan de Contingencia, Respuesta a Incidentes y Protección Futura</h2>
+
+      <h3 id="s7-1"><span class="num">7.1</span>Respaldos y Recuperación (RS-06)</h3>
+      <p>Se establece una política de respaldos periódicos cifrados de la base de datos, almacenados de forma independiente al servidor de producción. La estrategia sigue el <strong>principio 3-2-1</strong> (tres copias, dos medios, una externa) para garantizar la recuperación ante desastres o ataques de ransomware.</p>
+
+      <h3 id="s7-2"><span class="num">7.2</span>Plan de Respuesta a Incidentes</h3>
+      <p>Se adopta el ciclo de respuesta a incidentes basado en NIST (Figura 5): preparación, detección y análisis, contención, erradicación, recuperación y lecciones aprendidas. Ante una sospecha de fuga, se revoca el acceso comprometido, se preserva la bitácora como evidencia forense y se notifica según la normativa vigente.</p>
+
+      <div class="cycle-list">
+        <div class="step"><span class="n">1</span> · Preparación</div>
+        <div class="step"><span class="n">2</span> · Detección y análisis</div>
+        <div class="step"><span class="n">3</span> · Contención</div>
+        <div class="step"><span class="n">4</span> · Erradicación</div>
+        <div class="step"><span class="n">5</span> · Recuperación</div>
+        <div class="step"><span class="n">6</span> · Lecciones aprendidas</div>
+      </div>
+
+      <figure class="fig-placeholder">
+        <img src="5.png" alt="Ciclo de respuesta a incidentes NIST">
+        <figcaption><b>Figura 5.</b> Ciclo de respuesta a incidentes basado en NIST: preparación, detección y análisis, contención, erradicación, recuperación y lecciones aprendidas.</figcaption>
+      </figure>
+
+      <h3 id="s7-3"><span class="num">7.3</span>Recomendaciones de Protección de Datos Futura</h3>
+      <p>Se identifican medidas que, por alcance del proyecto, no se implementan en esta entrega pero se recomiendan a futuro:</p>
+      <ul>
+        <li>Gestión de claves con HSM/KMS y rotación periódica de la clave AES, en lugar de un archivo local.</li>
+        <li>Autenticación multifactor (MFA) para roles con acceso a PII.</li>
+        <li>Registro de auditoría externo (WORM) o anclaje periódico del último hash en almacenamiento inmutable.</li>
+        <li>Rate limiting y protección ante fuerza bruta en el login.</li>
+        <li>Migración a una base de datos con cifrado transparente (TDE) y control de accesos a nivel de fila para producción.</li>
+      </ul>
+    </section>
+
+    <!-- ======================= 8. RETROSPECTIVA ======================= -->
+    <section id="s8">
+      <h2><span class="num">8</span>Retrospectiva, Lecciones Aprendidas y Conclusiones</h2>
+
+      <p><strong>Lo que funcionó bien.</strong> La arquitectura modular del backend y la adopción del principio de "seguridad por diseño" permitieron que cada endpoint naciera protegido desde la definición del control de accesos. El uso exclusivo de bibliotecas criptográficas estándar y consolidadas (<code>cryptography</code>, <code>argon2-cffi</code>) evitó fallas por reinvención de algoritmos. Asimismo, la separación estricta entre los módulos de negocio y los servicios transversales de ciberseguridad (crypto, auth, rbac, audit) facilitó la verificación aislada de cada control técnico.</p>
+
+      <p><strong>Dificultades y aprendizajes.</strong> La principal complejidad técnica radicó en garantizar la eficiencia del backend sin degradar el rendimiento de la API. Se aprendió la importancia crítica de la gestión de datos, asegurando que llaves criptográficas y certificados jamás se versionen en el repositorio. Asimismo, representó un reto técnico importante la correcta implementación de la bitácora encadenada ante solicitudes concurrentes para evitar rupturas de integridad, así como el diseño del enmascaramiento y desidentificación de datos sensibles para cumplir con el principio de proporcionalidad de la Ley N.º 29733.</p>
+
+      <p><strong>Conclusión.</strong> El proyecto demuestra la viabilidad de un sistema de información hospitalario seguro donde la ciberseguridad y la gobernanza de datos constituyen una parte importante. A través de la integración de cifrado autenticado (AES-256-GCM), protección en tránsito (TLS 1.3), almacenamiento de credenciales memory-hard (Argon2id), control de acceso adaptativo (RBAC/ABAC) y trazabilidad, el sistema garantiza el cumplimiento de los principios de confidencialidad, integridad y no repudio exigidos por las normativas de salud.</p>
+    </section>
+
+    <!-- ======================= 9. ANEXOS ======================= -->
+    <section id="s9">
+      <h2><span class="num">9</span>Anexos y Evidencias Técnicas</h2>
+
+      <h3 id="s9-1"><span class="num">9.1</span>Resultados de las pruebas de seguridad</h3>
+      <p>La suite <code>test_security.py</code> valida los controles con <strong>20/20 pruebas exitosas</strong> (cifrado AES-GCM y detección de manipulación, Argon2id, RBAC, JWT e integridad de la bitácora). Las pruebas de integración de la API verifican <strong>14/14 escenarios</strong>, incluyendo denegaciones por RBAC/ABAC (403) y acceso sin token (401).</p>
+
+      <h3 id="s9-2"><span class="num">9.2</span>Principales endpoints de la API</h3>
+      <div class="table-wrap">
+        <table>
+          <caption>Cuadro 5. Endpoints principales del backend.</caption>
+          <thead>
+            <tr><th>Método</th><th>Ruta</th><th>Descripción (rol)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>POST</code></td><td><code>/api/login</code></td><td>Autenticación y emisión de JWT.</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/medico/pacientes</code></td><td>Pacientes asignados (Médico).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/medico/pacientes/{id}</code></td><td>Riesgo + PII descifrada + ICD-9 (Médico).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/director/kpis</code></td><td>Indicadores agregados sin PII (Director).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/auditor/logs</code></td><td>Bitácora de eventos (Auditor).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/auditor/verify</code></td><td>Verificación de integridad (Auditor).</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/admin/tablas</code></td><td>Ciphertexts sin descifrar (Admin BD).</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="s9-3"><span class="num">9.3</span>Repositorio y ejecución</h3>
+      <p>El código fuente se encuentra en el repositorio del proyecto. La ejecución con TLS se realiza mediante <code>uvicorn</code> apuntando a los certificados generados por la CA propia. Las credenciales de demostración y los pasos de instalación se documentan en el archivo <code>README.md</code>.</p>
+
+      <div class="note">Enlace del proyecto <code>https://github.com/Luciana-y/Proyecto-Etica-Parcial</code></div>
+    </section>
+
+    <footer class="doc-footer">
+      UTEC — Universidad de Ingeniería y Tecnología · Ética y Seguridad de Datos (DS3031) · Proyecto Parcial, 26 de septiembre de 2026.
+    </footer>
+  </main>
+</div>
+
+<script>
+  // Scrollspy: resalta el ítem activo del índice según la sección visible
+  const links = Array.from(document.querySelectorAll('nav.toc a'));
+  const targets = links
+    .map(a => document.getElementById(a.getAttribute('href').slice(1)))
+    .filter(Boolean);
+
+  function onScroll(){
+    let current = targets[0];
+    const scrollPos = window.scrollY + 120;
+    for(const t of targets){
+      if(t.offsetTop <= scrollPos) current = t;
+    }
+    links.forEach(a => a.classList.remove('active'));
+    if(current){
+      const active = links.find(a => a.getAttribute('href') === '#' + current.id);
+      if(active) active.classList.add('active');
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive:true });
+  onScroll();
+
+  // Cierra el menú móvil al elegir un ítem
+  links.forEach(a => a.addEventListener('click', () => {
+    document.querySelector('.sidebar').classList.remove('open');
+  }));
+</script>
+
+</body>
+</html>
