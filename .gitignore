@@ -31,6 +31,15 @@ htmlcov/
 *.sqlite3
 
 # ==========================================
+# Material criptográfico (¡CRÍTICO! nunca versionar)
+# ==========================================
+secrets/
+certs/*.key
+certs/*.crt
+certs/*.csr
+certs/*.srl
+
+# ==========================================
 # Configuraciones de Editores de Código
 # ==========================================
 .vscode/

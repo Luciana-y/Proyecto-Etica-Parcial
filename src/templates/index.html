@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistema de Riesgo de Reingreso — DS3031</title>
+<style>
+  :root { --azul:#1F4E79; --bg:#f4f6fa; --card:#fff; --line:#dde3ec; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,Segoe UI,Roboto,sans-serif; background:var(--bg); color:#1a2230; }
+  header { background:var(--azul); color:#fff; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; }
+  header h1 { font-size:16px; margin:0; font-weight:600; }
+  main { max-width:900px; margin:24px auto; padding:0 16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:20px; margin-bottom:18px; }
+  h2 { color:var(--azul); font-size:15px; margin:0 0 12px; }
+  label { display:block; font-size:13px; margin:8px 0 4px; color:#4a5568; }
+  input, button, select { font-size:14px; padding:9px 11px; border-radius:7px; border:1px solid var(--line); }
+  input, select { width:100%; }
+  button { background:var(--azul); color:#fff; border:none; cursor:pointer; font-weight:600; }
+  button.sec { background:#e8edf5; color:var(--azul); }
+  button:hover { opacity:.92; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); }
+  th { color:#5a6473; font-weight:600; }
+  .badge { padding:2px 9px; border-radius:20px; font-size:12px; font-weight:600; }
+  .ALTO { background:#fde2e1; color:#b42318; }
+  .MEDIO { background:#fef3c7; color:#92600a; }
+  .BAJO { background:#dcfce7; color:#15803d; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+  .kpi { background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:14px; }
+  .kpi .n { font-size:22px; font-weight:700; color:var(--azul); }
+  .kpi .l { font-size:12px; color:#5a6473; margin-top:3px; }
+  .muted { color:#7a8598; font-size:12px; }
+  .hint { font-size:12px; color:#7a8598; margin-top:10px; line-height:1.5; }
+  pre { background:#0f172a; color:#cbd5e1; padding:12px; border-radius:8px; overflow:auto; font-size:12px; max-height:340px; }
+  [hidden]{ display:none!important; }
+  .row { display:flex; gap:10px; align-items:end; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏥 Sistema de Riesgo de Reingreso y Gobierno de Datos Clínicos</h1>
+  <span id="who" class="muted"></span>
+</header>
+<main>
+
+  <!-- LOGIN -->
+  <div class="card" id="loginCard">
+    <h2>Iniciar sesión</h2>
+    <label>Usuario</label>
+    <input id="u" placeholder="p. ej. med.cardio">
+    <label>Contraseña</label>
+    <input id="p" type="password" placeholder="••••••••">
+    <div style="margin-top:14px"><button onclick="login()">Ingresar</button></div>
+    <p class="hint">
+      Usuarios de demo — Médico: <b>med.cardio / Medico#2024</b> ·
+      Director: <b>director / Director#2024</b> ·
+      Auditor: <b>auditor / Auditor#2024</b> ·
+      Admin BD: <b>dbadmin / DbAdmin#2024</b>
+    </p>
+    <p id="loginErr" class="badge ALTO" hidden></p>
+  </div>
+
+  <!-- PANEL -->
+  <div id="panel" hidden>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h2 id="panelTitle" style="margin:0"></h2>
+        <button class="sec" onclick="logout()">Cerrar sesión</button>
+      </div>
+    </div>
+    <div id="content"></div>
+  </div>
+
+</main>
+
+<script>
+let TOKEN = null, ROLE = null, NAME = null;
+
+async function api(path, opts={}) {
+  opts.headers = Object.assign({}, opts.headers, TOKEN ? {Authorization:"Bearer "+TOKEN} : {});
+  const r = await fetch(path, opts);
+  if (!r.ok) throw new Error((await r.json().catch(()=>({}))).detail || r.status);
+  return r.json();
+}
+
+async function login() {
+  const err = document.getElementById("loginErr"); err.hidden = true;
+  const fd = new FormData();
+  fd.append("username", document.getElementById("u").value);
+  fd.append("password", document.getElementById("p").value);
+  try {
+    const r = await fetch("/api/login", {method:"POST", body:fd});
+    if (!r.ok) throw new Error((await r.json()).detail);
+    const d = await r.json();
+    TOKEN = d.access_token; ROLE = d.role; NAME = d.name;
+    document.getElementById("loginCard").hidden = true;
+    document.getElementById("panel").hidden = false;
+    document.getElementById("who").textContent = NAME + " · " + ROLE;
+    render();
+  } catch(e) { err.textContent = e.message; err.hidden = false; }
+}
+
+function logout() { TOKEN=ROLE=NAME=null; location.reload(); }
+
+function h(html){ const d=document.getElementById("content"); d.innerHTML=html; }
+function badge(b){ return `<span class="badge ${b}">${b}</span>`; }
+
+async function render() {
+  const t = document.getElementById("panelTitle");
+  if (ROLE === "medico")   { t.textContent="Módulo Clínico — Pacientes asignados"; return renderMedico(); }
+  if (ROLE === "director") { t.textContent="Dashboard de Indicadores (KPIs)";     return renderDirector(); }
+  if (ROLE === "auditor")  { t.textContent="Bitácora de Auditoría";               return renderAuditor(); }
+  if (ROLE === "admin_bd") { t.textContent="Administración de BD (solo cifrado)"; return renderAdmin(); }
+}
+
+async function renderMedico() {
+  const d = await api("/api/medico/pacientes");
+  let rows = d.pacientes.map(p => `<tr>
+      <td>#${p.id}</td><td>${p.diag_1}</td>
+      <td>${(p.pred_prob*100).toFixed(1)}%</td>
+      <td>${badge(p.risk_band)}</td>
+      <td><button class="sec" onclick="verPaciente(${p.id})">Ver</button></td>
+    </tr>`).join("");
+  h(`<div class="card"><h2>${d.total} pacientes en su servicio</h2>
+     <table><tr><th>ID</th><th>Diagnóstico</th><th>Prob. reingreso</th><th>Riesgo</th><th></th></tr>
+     ${rows}</table></div><div class="card" id="det"><span class="muted">Seleccione un paciente para ver el detalle.</span></div>`);
+}
+
+async function verPaciente(id) {
+  const p = await api("/api/medico/pacientes/"+id);
+  document.getElementById("det").innerHTML = `
+    <h2>Paciente #${p.id}</h2>
+    <table>
+      <tr><th>N° de paciente (PII descifrada)</th><td>${p.pii.patient_nbr||"—"}</td></tr>
+      <tr><th>N° de atención (PII descifrada)</th><td>${p.pii.encounter_id||"—"}</td></tr>
+      <tr><th>Diagnóstico principal (ICD-9)</th><td>${p.diagnostico_principal.codigo} — ${p.diagnostico_principal.descripcion}</td></tr>
+      <tr><th>Estancia</th><td>${p.estancia_dias} días</td></tr>
+      <tr><th>Probabilidad de reingreso &lt;30d</th><td>${(p.riesgo.probabilidad*100).toFixed(1)}% ${badge(p.riesgo.estrato)}</td></tr>
+    </table>
+    <div class="row" style="margin-top:12px">
+      <div style="flex:1"><label>Registrar seguimiento post-alta</label>
+      <input id="nota" placeholder="p. ej. Llamada a las 48h realizada"></div>
+      <button onclick="seguimiento(${p.id})">Registrar</button>
+    </div>
+    <p id="segMsg" class="muted"></p>`;
+}
+
+async function seguimiento(id) {
+  const fd = new FormData(); fd.append("nota", document.getElementById("nota").value||"seguimiento");
+  await api("/api/medico/pacientes/"+id+"/seguimiento", {method:"POST", body:fd});
+  document.getElementById("segMsg").textContent = "✓ Seguimiento registrado (queda en la bitácora).";
+}
+
+async function renderDirector() {
+  const k = await api("/api/director/kpis");
+  h(`<div class="card"><div class="kpi-grid">
+    <div class="kpi"><div class="n">${k.tasa_reingreso_30d_pct}%</div><div class="l">Tasa de reingreso 30 días</div></div>
+    <div class="kpi"><div class="n">${k.pacientes_alto_riesgo}</div><div class="l">Pacientes de alto riesgo</div></div>
+    <div class="kpi"><div class="n">${k.dias_estancia_promedio}</div><div class="l">Días de estancia (ALOS)</div></div>
+    <div class="kpi"><div class="n">$${k.costo_evitado_estimado_usd.toLocaleString()}</div><div class="l">Costo evitado estimado</div></div>
+    <div class="kpi"><div class="n">${k.adherencia_post_alta_pct}%</div><div class="l">Adherencia post-alta</div></div>
+    <div class="kpi"><div class="n">${k.total_pacientes}</div><div class="l">Total pacientes</div></div>
+    </div><p class="hint">Vista agregada sin información personal (PII enmascarada por completo).</p></div>`);
+}
+
+async function renderAuditor() {
+  const v = await api("/api/auditor/verify");
+  const d = await api("/api/auditor/logs");
+  const estado = v.ok ? `<span class="badge BAJO">CADENA ÍNTEGRA</span>`
+                      : `<span class="badge ALTO">CADENA ROTA en id ${v.broken_at}</span>`;
+  let rows = d.eventos.map(e => `<tr><td>${e.id}</td><td>${e.actor}</td><td>${e.action}</td>
+      <td>${e.resource||""}</td><td class="muted">${e.record_hash.slice(0,16)}…</td></tr>`).join("");
+  h(`<div class="card"><h2>Verificación de integridad ${estado}</h2>
+     <p class="muted">${v.total} eventos encadenados por hash SHA-256.</p></div>
+     <div class="card"><h2>Últimos eventos</h2>
+     <table><tr><th>ID</th><th>Actor</th><th>Acción</th><th>Recurso</th><th>Hash</th></tr>${rows}</table></div>`);
+}
+
+async function renderAdmin() {
+  const d = await api("/api/admin/tablas");
+  h(`<div class="card"><h2>Tablas crudas (ciphertexts)</h2>
+     <p class="hint">${d.nota}</p>
+     <pre>${JSON.stringify(d.filas, null, 2)}</pre></div>`);
+}
+</script>
+</body>
+</html>
