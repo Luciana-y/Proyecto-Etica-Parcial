@@ -24,7 +24,6 @@ GENESIS_HASH = "0" * 64
 
 def _canonical(ts: str, actor: str, role: str, action: str,
                resource: str, detail: str, prev_hash: str) -> str:
-    """Serialización canónica y determinista del registro para el hash."""
     return "|".join([prev_hash, ts, actor, role, action, resource, detail])
 
 
@@ -37,12 +36,8 @@ def _last_hash(conn: sqlite3.Connection) -> str:
 
 def log_event(conn: sqlite3.Connection, actor: str, role: str, action: str,
               resource: str = "", detail: str = "") -> str:
-    """
-    Registra un evento en la bitácora y devuelve su hash.
+    # Registra un evento en la bitácora y devuelve su hash.
 
-    Recibe la conexión para poder participar en la misma transacción que la
-    operación auditada.
-    """
     ts = datetime.now(timezone.utc).isoformat()
     prev_hash = _last_hash(conn)
     canonical = _canonical(ts, actor, role, action, resource, detail, prev_hash)
@@ -55,15 +50,8 @@ def log_event(conn: sqlite3.Connection, actor: str, role: str, action: str,
     )
     return record_hash
 
-
+# Recalcula la cadena de hashes de toda la bitácora.
 def verify_chain(conn: sqlite3.Connection) -> dict:
-    """
-    Recalcula la cadena de hashes de toda la bitácora.
-
-    Devuelve {"ok": bool, "total": n, "broken_at": id|None}. Si algún registro
-    fue alterado o eliminado, `ok` es False y `broken_at` indica el primer id
-    donde la cadena deja de ser consistente.
-    """
     rows = conn.execute(
         """SELECT id, ts, actor, role, action, resource, detail, prev_hash, record_hash
            FROM audit_log ORDER BY id ASC"""

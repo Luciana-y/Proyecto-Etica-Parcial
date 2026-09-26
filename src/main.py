@@ -1,14 +1,5 @@
-"""
-main.py — API REST del Sistema de Seguridad de Datos Hospitalarios (RF-01..06).
+# main.py — API REST del Sistema de Seguridad de Datos Hospitalarios (RF-01..06).
 
-FastAPI que integra autenticación JWT, control de acceso RBAC/ABAC, cifrado de
-PII, motor predictivo y bitácora de auditoría. Cada acción sensible queda
-registrada en la bitácora inmutable.
-
-Ejecutar (con TLS y certificados propios, RS-01):
-    uvicorn src.main:app --host 0.0.0.0 --port 8443 \
-        --ssl-keyfile certs/server.key --ssl-certfile certs/server.crt
-"""
 from __future__ import annotations
 
 import pandas as pd

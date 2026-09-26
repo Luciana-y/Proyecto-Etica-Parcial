@@ -1,10 +1,5 @@
-"""
-config.py — Configuración central del sistema.
+# config.py — Configuración central del sistema.
 
-Gestiona rutas, parámetros de seguridad y el material criptográfico
-(clave AES-256 y secreto JWT). Las claves se generan una sola vez y se
-persisten en la carpeta `secrets/` (ignorada por git). Nunca se versionan.
-"""
 from __future__ import annotations
 
 import json

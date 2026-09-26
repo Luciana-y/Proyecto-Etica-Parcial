@@ -1,16 +1,5 @@
-"""
-database.py — Capa de datos (SQLite) con cifrado de PII en reposo.
+#database.py — Capa de datos (SQLite) con cifrado de PII en reposo.
 
-Modelo de datos:
-  - users        : credenciales (hash Argon2id) y rol de cada usuario.
-  - patients     : datos clínicos desidentificados + PII CIFRADA (AES-256-GCM).
-  - followups    : seguimientos post-alta registrados por el médico.
-  - audit_log    : bitácora inmutable encadenada por hash (ver audit.py).
-
-Los identificadores personales (patient_nbr, encounter_id) se almacenan
-únicamente cifrados. Las columnas clínicas usadas para agregados de negocio
-(estancia, laboratorios, etc.) se guardan desidentificadas.
-"""
 from __future__ import annotations
 
 import json

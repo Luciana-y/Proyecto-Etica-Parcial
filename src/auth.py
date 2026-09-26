@@ -1,10 +1,5 @@
-"""
-auth.py — Autenticación y emisión de tokens (RS-03, RS-04).
+# auth.py — Autenticación y emisión de tokens (RS-03, RS-04).
 
-- Verificación de credenciales contra la tabla de usuarios (contraseñas Argon2id).
-- Emisión y validación de tokens JWT firmados (HS256) para autenticar cada
-  petición al backend.
-"""
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -16,10 +11,8 @@ from . import config, crypto_utils, database
 
 
 def authenticate_user(username: str, password: str) -> Optional[dict]:
-    """
-    Valida usuario y contraseña. Devuelve el registro del usuario (sin el hash)
-    si las credenciales son correctas, o None en caso contrario.
-    """
+
+    # Valida usuario y contraseña. Devuelve el registro del usuario (sin el hash) si las credenciales son correctas, o None en caso contrario.
     user = database.get_user(username)
     if user is None:
         # Se verifica igualmente contra un hash dummy para mitigar ataques de
@@ -41,7 +34,7 @@ def authenticate_user(username: str, password: str) -> Optional[dict]:
 
 
 def create_access_token(user: dict) -> str:
-    """Genera un JWT firmado con los claims del usuario y una expiración."""
+    # Genera un JWT firmado con los claims del usuario y una expiración.
     now = datetime.now(timezone.utc)
     payload = {
         "sub": user["username"],
@@ -55,10 +48,7 @@ def create_access_token(user: dict) -> str:
 
 
 def decode_access_token(token: str) -> Optional[dict]:
-    """
-    Valida la firma y expiración de un JWT. Devuelve los claims si es válido,
-    o None si está expirado o manipulado.
-    """
+    # Valida la firma y expiración de un JWT.
     try:
         return jwt.decode(
             token,

@@ -1,10 +1,5 @@
-"""
-ml.py — Motor Predictivo de Reingreso (RF-03).
+# ml.py — Motor Predictivo de Reingreso (RF-03).
 
-Carga el modelo de Regresión Logística y el preprocesador entrenados en
-`models/train_model.py`, y expone funciones para estimar la probabilidad de
-reingreso a 30 días y estratificar el riesgo (Alto / Medio / Bajo).
-"""
 from __future__ import annotations
 
 from functools import lru_cache

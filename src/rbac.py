@@ -1,10 +1,5 @@
-"""
-rbac.py — Control de Acceso Basado en Roles y Atributos (RS-04).
+# rbac.py — Control de Acceso Basado en Roles y Atributos (RS-04).
 
-Implementa la matriz de control de acceso del informe (Cuadro 3). Cada rol
-tiene un conjunto de permisos (acciones) y un alcance de lectura. La verificación
-se aplica en cada endpoint del backend (principio de Mediación Completa).
-"""
 from __future__ import annotations
 
 # --------------------------------------------------------------------------

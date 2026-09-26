@@ -49,12 +49,6 @@ def encrypt_pii(plaintext: str) -> str:
 
 
 def decrypt_pii(token: str) -> str:
-    """
-    Descifra una cadena producida por `encrypt_pii`.
-
-    Lanza una excepción (`cryptography.exceptions.InvalidTag`) si el dato fue
-    manipulado, garantizando la integridad del PII.
-    """
     raw = base64.b64decode(token.encode("ascii"))
     nonce, ciphertext = raw[:_NONCE_LEN], raw[_NONCE_LEN:]
     aesgcm = AESGCM(config.get_aes_key())
@@ -65,12 +59,11 @@ def decrypt_pii(token: str) -> str:
 # Hashing de contraseñas (Argon2id) — RS-03
 # --------------------------------------------------------------------------
 def hash_password(password: str) -> str:
-    """Devuelve el hash Argon2id de la contraseña (incluye sal única embebida)."""
+    #Devuelve el hash Argon2id de la contraseña (incluye sal única embebida).
     return _password_hasher.hash(password)
 
 
 def verify_password(stored_hash: str, password: str) -> bool:
-    """Verifica una contraseña contra su hash Argon2id almacenado."""
     try:
         return _password_hasher.verify(stored_hash, password)
     except (VerifyMismatchError, VerificationError, InvalidHashError):
@@ -78,7 +71,6 @@ def verify_password(stored_hash: str, password: str) -> bool:
 
 
 def needs_rehash(stored_hash: str) -> bool:
-    """Indica si el hash debería recalcularse (parámetros Argon2 desactualizados)."""
     try:
         return _password_hasher.check_needs_rehash(stored_hash)
     except InvalidHashError:
@@ -89,5 +81,4 @@ def needs_rehash(stored_hash: str) -> bool:
 # Hashing SHA-256 (cadena de integridad de la bitácora) — RS-05
 # --------------------------------------------------------------------------
 def sha256_hex(data: str) -> str:
-    """Devuelve el hash SHA-256 en hexadecimal de una cadena."""
     return hashlib.sha256(data.encode("utf-8")).hexdigest()
